@@ -46,7 +46,7 @@ func getText(n *html.Node) string {
 	}
 	var s string
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		s += getText(c) + " "
+		s += getText(c)
 	}
 	return strings.Join(strings.Fields(s), " ")
 }
