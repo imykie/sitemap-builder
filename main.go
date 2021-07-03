@@ -9,8 +9,12 @@ import (
 const exampleHTML = `
 <html>
 <body>
-  <h1>Hello!</h1>
-  <a href="/other-page">A link to another page</a>
+  	<h1>Hello!</h1>
+	<a href="/other-page">A link to another page</a>
+	<a href="/page">A link to some other 
+		<span> something </span>
+		page
+	</a>
 </body>
 </html>`
 
