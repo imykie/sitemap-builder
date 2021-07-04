@@ -34,7 +34,7 @@ func getPage(urlFlag string) []string {
 	}
 
 	base := baseUrl.String()
-	return hrefs(resp.Body, base)
+	return filter(hrefs(resp.Body, base), withPrefix(base))
 }
 
 func hrefs(body io.Reader, base string) []string {
@@ -54,4 +54,21 @@ func hrefs(body io.Reader, base string) []string {
 	}
 
 	return hrefs
+}
+
+func filter(links []string, keepFn func (string) bool) []string{
+	var result []string
+	for _, link := range links {
+		if keepFn(link) {
+			result = append(result, link)
+		}
+	}
+	return result
+
+}
+
+func withPrefix(prefix string) func (string) bool {
+	return func (link string) bool {
+		return strings.HasPrefix(link, prefix)
+	}
 }
