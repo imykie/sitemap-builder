@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	link "sitemap-builder/cmd"
@@ -26,8 +27,14 @@ func main() {
 	}
 
 	base := baseUrl.String()
+	pages := hrefs(resp.Body, base)
+	for _, page := range pages {
+		fmt.Println(page)
+	}
+}
 
-	links, err := link.Parse(resp.Body)
+func hrefs(body io.Reader, base string) []string {
+	links, err := link.Parse(body)
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +49,5 @@ func main() {
 		}
 	}
 
-	for _, href := range hrefs {
-		fmt.Println(href)
-	}
+	return hrefs
 }
