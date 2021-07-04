@@ -1,9 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	link "html-parser/cmd"
-	"strings"
+	link "sitemap-builder/cmd"
+	"net/http"
 )
 
 const exampleHTML = `
@@ -71,10 +72,23 @@ const exampleHTML = `
 </html>`
 
 func main() {
-	r := strings.NewReader(exampleHTML)
-	links, err := link.Parse(r)
+	url := flag.String("url", "https://github.com", "The URL you want to build sitemap for")
+	flag.Parse()
+	//r := strings.NewReader(exampleHTML)
+
+	resp, err := http.Get(*url)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v\n", links)
+	defer resp.Body.Close()
+	//io.Copy(os.Stdout, resp.Body)
+	//fmt.Println(*url, resp)
+	links, err := link.Parse(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, link := range links {
+		fmt.Printf("%+v\n", link)
+	}
 }
