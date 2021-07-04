@@ -14,7 +14,14 @@ func main() {
 	urlFlag := flag.String("url", "https://github.com", "The URL you want to build sitemap for")
 	flag.Parse()
 
-	resp, err := http.Get(*urlFlag)
+	pages := getPage(*urlFlag)
+	for _, page := range pages {
+		fmt.Println(page)
+	}
+}
+
+func getPage(urlFlag string) []string {
+	resp, err := http.Get(urlFlag)
 	if err != nil {
 		panic(err)
 	}
@@ -27,10 +34,7 @@ func main() {
 	}
 
 	base := baseUrl.String()
-	pages := hrefs(resp.Body, base)
-	for _, page := range pages {
-		fmt.Println(page)
-	}
+	return hrefs(resp.Body, base)
 }
 
 func hrefs(body io.Reader, base string) []string {
