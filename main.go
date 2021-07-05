@@ -45,6 +45,7 @@ func main() {
 	if err := enc.Encode(toXml); err != nil {
 		panic(err)
 	}
+	fmt.Println("")
 }
 
 func bfs(baseUrl string, depth int) []string {
