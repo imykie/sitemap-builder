@@ -5,17 +5,23 @@ This is a tool that maps all the pages within a specific website domain dependin
 Read more about sitemaps [here](https://www.sitemaps.org/protocol.html)
 ### Flags
 
-  |S/N | Flag  | Type  | Required/Optional   |  Description |
-  |---|---|---|---|---|
-  | 1  | url | String | Optional  | The URL you want to build Sitemap for  |
-  |  2 | depth  | Int  | Optional  | The maximum depth of the Sitemap Builder  |
+  |S/N | Flag  | Type  | Required/Optional   |  Description | Default|
+  |---|---|---|---|---|---|
+  | 1  | url | String | Optional  | The URL you want to build Sitemap for  | https://go.dev |
+  |  2 | depth  | Int  | Optional  | The maximum depth of the Sitemap Builder  | 3 |
 
 ### Usage
+Ensure you are at the project root:
 
-Ensure you are at the project root, then run
+##### Printing generated sitemap xml to console.
 
 ```shell
- go build . && go run . --url="example.com" --depth=2
+ go build . && go run . --url="example.com" --depth=3
+```
+
+##### Creating a xml file for the generated sitemap xml
+```shell
+ go build . && go run . --url="example.com" --depth=3 > sitemap.xml
 ```
 
 ### Result
