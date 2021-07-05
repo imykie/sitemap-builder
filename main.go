@@ -1,25 +1,50 @@
 package main
 
 import (
+	"encoding/xml"
 	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	link "sitemap-builder/cmd"
+	"strconv"
 	"strings"
 )
 
+const xmlns = "http://www.sitemaps.org/schemas/sitemap/0.9"
+
+type loc struct {
+	Value string `xml:"loc"`
+}
+
+type urlset struct {
+	Urls    []loc  `xml:"url"`
+	Xmlns   string `xml:"xmlns,attr"`
+	Comment string `xml:",comment"`
+}
+
 func main() {
-	urlFlag := flag.String("url", "https://github.com", "The URL you want to build Sitemap for")
-	maxDepth := flag.Int("depth", 2, "The maximum depth of the Sitemap Builder")
+	urlFlag := flag.String("url", "https://go.dev", "The URL you want to build Sitemap for")
+	maxDepth := flag.Int("depth", 3, "The maximum depth of the Sitemap Builder")
 	flag.Parse()
 
+	toXml := urlset{
+		Xmlns: xmlns,
+	}
 	pages := bfs(*urlFlag, *maxDepth)
 	for _, page := range pages {
-		fmt.Println(page)
+		toXml.Urls = append(toXml.Urls, loc{page})
 	}
-	fmt.Println(len(pages))
+	toXml.Comment = "Total number of URLs: " + strconv.Itoa(len(pages))
+
+	fmt.Printf(xml.Header)
+	enc := xml.NewEncoder(os.Stdout)
+	enc.Indent(" ", "  ")
+	if err := enc.Encode(toXml); err != nil {
+		panic(err)
+	}
 }
 
 func bfs(baseUrl string, depth int) []string {
@@ -47,14 +72,13 @@ func bfs(baseUrl string, depth int) []string {
 	for urlStr, _ := range reached {
 		result = append(result, urlStr)
 	}
-
 	return result
 }
 
 func getPage(urlFlag string) []string {
 	resp, err := http.Get(urlFlag)
 	if err != nil {
-		panic(err)
+		return []string{}
 	}
 	defer resp.Body.Close()
 
@@ -84,11 +108,10 @@ func hrefs(body io.Reader, base string) []string {
 			hrefs = append(hrefs, l.Href)
 		}
 	}
-
 	return hrefs
 }
 
-func filter(links []string, checkFns... func(string) bool) []string {
+func filter(links []string, checkFns ...func(string) bool) []string {
 	var result []string
 	for _, lnk := range links {
 		r := true
@@ -100,7 +123,6 @@ func filter(links []string, checkFns... func(string) bool) []string {
 		}
 	}
 	return result
-
 }
 
 func withPrefix(prefix string) func(string) bool {
