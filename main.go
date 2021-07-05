@@ -11,13 +11,44 @@ import (
 )
 
 func main() {
-	urlFlag := flag.String("url", "https://github.com", "The URL you want to build sitemap for")
+	urlFlag := flag.String("url", "https://github.com", "The URL you want to build Sitemap for")
+	maxDepth := flag.Int("depth", 2, "The maximum depth of the Sitemap Builder")
 	flag.Parse()
 
-	pages := getPage(*urlFlag)
+	pages := bfs(*urlFlag, *maxDepth)
 	for _, page := range pages {
 		fmt.Println(page)
 	}
+	fmt.Println(len(pages))
+}
+
+func bfs(baseUrl string, depth int) []string {
+	reached := make(map[string]struct{})
+	var queue map[string]struct{}
+	nextQueue := map[string]struct{}{
+		baseUrl: struct{}{},
+	}
+	for i := 0; i <= depth; i++ {
+		queue, nextQueue = nextQueue, make(map[string]struct{})
+		if len(queue) == 0 {
+			break
+		}
+		for urlStr, _ := range queue {
+			if _, ok := reached[urlStr]; ok {
+				continue
+			}
+			reached[urlStr] = struct{}{}
+			for _, l := range getPage(urlStr) {
+				nextQueue[l] = struct{}{}
+			}
+		}
+	}
+	result := make([]string, 0, len(reached))
+	for urlStr, _ := range reached {
+		result = append(result, urlStr)
+	}
+
+	return result
 }
 
 func getPage(urlFlag string) []string {
@@ -56,7 +87,7 @@ func hrefs(body io.Reader, base string) []string {
 	return hrefs
 }
 
-func filter(links []string, keepFn func (string) bool) []string{
+func filter(links []string, keepFn func(string) bool) []string {
 	var result []string
 	for _, link := range links {
 		if keepFn(link) {
@@ -67,8 +98,8 @@ func filter(links []string, keepFn func (string) bool) []string{
 
 }
 
-func withPrefix(prefix string) func (string) bool {
-	return func (link string) bool {
+func withPrefix(prefix string) func(string) bool {
+	return func(link string) bool {
 		return strings.HasPrefix(link, prefix)
 	}
 }
