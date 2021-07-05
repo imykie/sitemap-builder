@@ -63,9 +63,10 @@ func getPage(urlFlag string) []string {
 		Scheme: reqUrl.Scheme,
 		Host:   reqUrl.Host,
 	}
-
 	base := baseUrl.String()
-	return filter(hrefs(resp.Body, base), withPrefix(base))
+
+	// NOTE: Check functions must resolve to true for url to be included.
+	return filter(hrefs(resp.Body, base), withPrefix(base), withoutSubstring("#"))
 }
 
 func hrefs(body io.Reader, base string) []string {
@@ -87,11 +88,15 @@ func hrefs(body io.Reader, base string) []string {
 	return hrefs
 }
 
-func filter(links []string, keepFn func(string) bool) []string {
+func filter(links []string, checkFns... func(string) bool) []string {
 	var result []string
-	for _, link := range links {
-		if keepFn(link) {
-			result = append(result, link)
+	for _, lnk := range links {
+		r := true
+		for i, _ := range checkFns {
+			r = r && checkFns[i](lnk)
+		}
+		if r {
+			result = append(result, lnk)
 		}
 	}
 	return result
@@ -101,5 +106,11 @@ func filter(links []string, keepFn func(string) bool) []string {
 func withPrefix(prefix string) func(string) bool {
 	return func(link string) bool {
 		return strings.HasPrefix(link, prefix)
+	}
+}
+
+func withoutSubstring(substr string) func(string) bool {
+	return func(link string) bool {
+		return !strings.Contains(link, substr)
 	}
 }
